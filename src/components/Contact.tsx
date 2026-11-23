@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import Reveal from '@/components/Reveal';
@@ -14,15 +15,18 @@ export default function Contact() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     if (status === 'sending') return;
 
     const form = event.currentTarget;
     const data = new FormData(form);
+
     const name = String(data.get('name') ?? '').trim();
     const email = String(data.get('email') ?? '').trim();
+    const packageName = String(data.get('package') ?? '').trim();
     const message = String(data.get('message') ?? '').trim();
 
-    if (!name || !email || !message) {
+    if (!name || !email || !packageName || !message) {
       setStatus('error');
       setErrorMessage('Please fill in all fields before sending.');
       return;
@@ -31,9 +35,12 @@ export default function Contact() {
     setStatus('sending');
     setErrorMessage('');
 
+    const completeMessage =
+      `Selected Package: ${packageName}\n\nProject Details:\n${message}`;
+
     const { error } = await supabase
       .from('contact_messages')
-      .insert([{ name, email, message }]);
+      .insert([{ name, email, message: completeMessage }]);
 
     if (error) {
       setStatus('error');
@@ -51,13 +58,16 @@ export default function Contact() {
         aria-hidden
         className="absolute bottom-0 left-1/2 h-80 w-[560px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[130px]"
       />
+
       <div className="relative mx-auto max-w-3xl px-6">
         <Reveal>
           <div className="text-center">
             <p className="section-tag justify-center">Let's talk</p>
+
             <h2 className="mt-4 text-3xl font-bold text-white md:text-4xl">
               HAVE A PROJECT IN MIND?
             </h2>
+
             <p className="mx-auto mt-4 max-w-lg text-lavender-200/70">
               Let's create something amazing together.
             </p>
@@ -71,13 +81,16 @@ export default function Contact() {
                 <div className="mx-auto inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 p-4 text-emerald-300">
                   <VkLogo size="sm" />
                 </div>
+
                 <h3 className="mt-6 text-xl font-semibold text-white">
                   Message sent!
                 </h3>
+
                 <p className="mx-auto mt-2 max-w-sm text-sm text-lavender-200/65">
                   Your message has been saved and the studio has been notified.
                   We'll reply to your email as soon as possible.
                 </p>
+
                 <button
                   onClick={() => setStatus('idle')}
                   className="mt-6 rounded-full border border-white/15 px-6 py-2.5 text-sm text-lavender-200 transition-all duration-300 hover:border-neon/50 hover:text-white"
@@ -86,12 +99,20 @@ export default function Contact() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-5"
+                noValidate
+              >
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="name" className="mb-2 block text-xs font-medium uppercase tracking-wider text-lavender-200/60">
+                    <label
+                      htmlFor="name"
+                      className="mb-2 block text-xs font-medium uppercase tracking-wider text-lavender-200/60"
+                    >
                       Name
                     </label>
+
                     <input
                       id="name"
                       name="name"
@@ -102,10 +123,15 @@ export default function Contact() {
                       className={fieldClasses}
                     />
                   </div>
+
                   <div>
-                    <label htmlFor="email" className="mb-2 block text-xs font-medium uppercase tracking-wider text-lavender-200/60">
+                    <label
+                      htmlFor="email"
+                      className="mb-2 block text-xs font-medium uppercase tracking-wider text-lavender-200/60"
+                    >
                       Email
                     </label>
+
                     <input
                       id="email"
                       name="email"
@@ -117,6 +143,44 @@ export default function Contact() {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label
+                    htmlFor="package"
+                    className="mb-2 block text-xs font-medium uppercase tracking-wider text-lavender-200/60"
+                  >
+                    Choose Your Package
+                  </label>
+
+                  <select
+                    id="package"
+                    name="package"
+                    required
+                    defaultValue=""
+                    className={fieldClasses}
+                  >
+                    <option value="" disabled className="bg-ink-800">
+                      Select a package
+                    </option>
+
+                    <option value="Starter - Rs. 10,000" className="bg-ink-800">
+                      Starter — Rs. 10,000
+                    </option>
+
+                    <option value="Professional - Rs. 20,000" className="bg-ink-800">
+                      Professional — Rs. 20,000
+                    </option>
+
+                    <option value="Premium - Rs. 35,000+" className="bg-ink-800">
+                      Premium — Rs. 35,000+
+                    </option>
+
+                    <option value="Custom Project" className="bg-ink-800">
+                      Custom Project
+                    </option>
+                  </select>
+                </div>
+
                 <div>
                   <label
                     htmlFor="message"
@@ -124,6 +188,7 @@ export default function Contact() {
                   >
                     Project Details
                   </label>
+
                   <textarea
                     id="message"
                     name="message"
