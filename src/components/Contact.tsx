@@ -38,14 +38,32 @@ export default function Contact() {
     const completeMessage =
       `Selected Package: ${packageName}\n\nProject Details:\n${message}`;
 
+    // Save message in Supabase database
     const { error } = await supabase
       .from('contact_messages')
       .insert([{ name, email, message: completeMessage }]);
 
     if (error) {
+      console.error('Database error:', error);
       setStatus('error');
       setErrorMessage('Something went wrong. Please try again in a moment.');
       return;
+    }
+
+    // Send email notification
+    const { error: emailError } = await supabase.functions.invoke(
+      'smooth-processor',
+      {
+        body: {
+          name,
+          email,
+          message: completeMessage,
+        },
+      }
+    );
+
+    if (emailError) {
+      console.error('Email notification failed:', emailError);
     }
 
     form.reset();
@@ -87,8 +105,8 @@ export default function Contact() {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-sm text-sm text-lavender-200/65">
-                  Your message has been saved and the studio has been notified.
-                  We'll reply to your email as soon as possible.
+                  Your message has been received and saved successfully.
+                  We'll get back to you soon!
                 </p>
 
                 <button
